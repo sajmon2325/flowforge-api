@@ -3,12 +3,11 @@
 FlowForge is a workflow and process automation engine built with ASP.NET Core.  
 It allows users to define workflows (states and transitions) and execute tasks that strictly follow those workflow rules.
 
-The project is designed as a clean, modular monolith using CQRS and Domain-Driven Design principles.  
-Its purpose is to demonstrate production-grade backend architecture, containerization, and CI/CD practices.
+The project follows Clean Architecture and CQRS principles with event-driven synchronization between database instances.
 
 ---
 
-##  Features
+## 🚀 Features
 
 - Create and manage workflows
 - Define workflow states (initial, intermediate, final)
@@ -16,24 +15,131 @@ Its purpose is to demonstrate production-grade backend architecture, containeriz
 - Create tasks bound to workflows
 - Move tasks through valid transitions only
 - Track full task state history
-- Enforce domain invariants inside aggregates
+- Event-driven database synchronization
+- Two database instances (write + read)
+- RabbitMQ message broker for events
+- Outbox pattern for reliable event delivery
 - Optimistic concurrency handling
-- Clean CQRS separation (Commands & Queries)
 - Dockerized environment
 - CI/CD pipeline with GitHub Actions
 
 ---
 
-##  Architecture
+## 🏗 Architecture
 
-FlowForge follows Clean Architecture principles and is structured as a modular monolith.
+FlowForge uses:
+
+✔ Clean Architecture  
+✔ CQRS (Command Query Responsibility Segregation)  
+✔ Event-driven synchronization  
+✔ Two databases  
+✔ RabbitMQ for messaging  
+✔ Outbox pattern (no event sourcing)
+
+### Database Strategy
+
+| Database | Purpose |
+|----------|---------|
+| flowforge_write | Source of truth (commands) |
+| flowforge_read | Optimized read model (queries) |
+
+Events synchronize read database projections.
+
+---
+
+### Project Structure
 ```
 src/
 ├── FlowForge.Api
 ├── FlowForge.Application
 ├── FlowForge.Domain
 ├── FlowForge.Infrastructure
+├── FlowForge.Messaging
 └── FlowForge.Tests
+```
+
+
+### Layers
+
+**Domain**
+- Entities
+- Value Objects
+- Domain Events
+- Business rules & invariants
+
+**Application**
+- Commands
+- Queries
+- Handlers (MediatR)
+- DTOs
+- Validation (FluentValidation)
+
+**Infrastructure**
+- Entity Framework Core
+- Database repositories
+- Migrations
+- Outbox implementation
+
+**Messaging**
+- RabbitMQ integration
+- Event publishing
+- Event consumers
+- Message contracts
+
+**API**
+- REST endpoints
+- Middleware
+- Exception handling
+- Swagger / OpenAPI
+
+---
+
+## 🧠 Design Principles
+
+- CQRS for command/query separation
+- Event-driven synchronization
+- Two database projections
+- Outbox pattern for reliable delivery
+- Domain-driven business rules
+- Clean separation of concerns
+
+---
+
+## 🛠 Technology Stack
+
+### Backend
+- .NET 8
+- ASP.NET Core Web API
+- Entity Framework Core
+- MediatR
+- FluentValidation
+- MassTransit (RabbitMQ)
+- Serilog
+- xUnit
+- FluentAssertions
+
+### Databases
+- Microsoft SQL Server (write)
+- Microsoft SQL Server (read)
+
+### Messaging
+- RabbitMQ
+- MassTransit abstraction
+- Outbox pattern
+
+### DevOps
+- Docker
+- Docker Compose
+- GitHub Actions (CI/CD)
+
+---
+
+## 🐳 Running with Docker
+
+Ensure Docker is installed, then run:
+
+```bash
+docker-compose up --build
 ```
 
 ### Layers
@@ -47,16 +153,21 @@ src/
 **Application**
 - Commands
 - Queries
-- Handlers
+- Handlers (MediatR)
 - DTOs
-- Validation
+- Validation (FluentValidation)
 
 **Infrastructure**
 - Entity Framework Core
-- MS SQL integration
-- Repository implementations
+- Database repositories
 - Migrations
-- Logging configuration
+- Outbox implementation
+
+**Messaging**
+- RabbitMQ integration
+- Event publishing
+- Event consumers
+- Message contracts
 
 **API**
 - REST endpoints
@@ -66,18 +177,18 @@ src/
 
 ---
 
-##  Design Principles
+## 🧠 Design Principles
 
-- CQRS (Command Query Responsibility Segregation)
-- Domain-Driven Design (DDD)
-- Aggregates enforce invariants
-- Optimistic concurrency via RowVersion
-- Separation of concerns
-- Infrastructure-independent domain layer
+- CQRS for command/query separation
+- Event-driven synchronization
+- Two database projections
+- Outbox pattern for reliable delivery
+- Domain-driven business rules
+- Clean separation of concerns
 
 ---
 
-##  Technology Stack
+## 🛠 Technology Stack
 
 ### Backend
 - .NET 8
@@ -85,12 +196,19 @@ src/
 - Entity Framework Core
 - MediatR
 - FluentValidation
+- MassTransit (RabbitMQ)
 - Serilog
 - xUnit
 - FluentAssertions
 
-### Database
-- Microsoft SQL Server
+### Databases
+- Microsoft SQL Server (write)
+- Microsoft SQL Server (read)
+
+### Messaging
+- RabbitMQ
+- MassTransit abstraction
+- Outbox pattern
 
 ### DevOps
 - Docker
@@ -102,12 +220,20 @@ src/
 ## 🐳 Running with Docker
 
 Ensure Docker is installed, then run:
-docker-compose up --build
 
+```bash
+docker-compose up --build
+```
 
 This will start:
-- API container
-- SQL Server container
+
+API container
+
+Write database
+
+Read database
+
+RabbitMQ broker
 
 The API will be available at:
 http://localhost:5000
@@ -115,14 +241,31 @@ http://localhost:5000
 Swagger UI:
 http://localhost:5000/swagger
 
+---
+
+🧪 Running Tests
+
+From the root directory:
+```bash
+dotnet test
+```
 
 ---
 
-## 🧪 Running Tests
+## 🔄 Event-Driven Synchronization
 
-From the root directory:
-dotnet test
-
+Database synchronization flow:
+```
+Command
+↓
+Write DB (transaction)
+↓
+Outbox table record
+↓
+Event published (RabbitMQ)
+↓
+Read DB projection update
+```
 
 ---
 

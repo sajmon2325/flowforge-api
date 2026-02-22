@@ -27,14 +27,14 @@ Its purpose is to demonstrate production-grade backend architecture, containeriz
 ##  Architecture
 
 FlowForge follows Clean Architecture principles and is structured as a modular monolith.
-
+```
 src/
 ├── FlowForge.Api
 ├── FlowForge.Application
 ├── FlowForge.Domain
 ├── FlowForge.Infrastructure
 └── FlowForge.Tests
-
+```
 
 ### Layers
 
